@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+<style>
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  font-family: Arial, sans-serif;
+  height: 100vh;
+  margin: 0;
+  color: white;
+}
+h1 {
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 5px black;
+}
+canvas {
+  background: #111;
+  border: 3px solid #fff;
+  display: block;
+  margin-top: 15px;
+}
+#score, #highScore {
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+.menu {
+  margin: 10px 0;
+}
+select, button {
+  padding: 8px 12px;
+  font-size: 16px;
+  border-radius: 6px;
+  border: none;
+}
+button {
+  background: #28a745;
+  color: white;
+  cursor: pointer;
+  transition: opacity 0.3s;
+}
+button:active { opacity: 0.6; }
+</style>
+</head>
+<body>
+<h1>Snake Game</h1>
+<div class="menu">
+  <label for="level">Choose Level:</label>
+  <select id="level">
+    <option value="150">Easy</option>
+    <option value="100">Medium</option>
+    <option value="70">Hard</option>
+  </select>
+  <button id="startBtn">Start Game</button>
+</div>
+<canvas id="gameCanvas" width="400" height="400"></canvas>
+<div id="score">Score: 0</div>
+<div id="highScore">High Score: 0</div>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+const scoreEl = document.getElementById("score");
+const highScoreEl = document.getElementById("highScore");
+const startBtn = document.getElementById("startBtn");
+const levelSelect = document.getElementById("level");
+
+let box = 20, snake, food, dx, dy, score, highScore=0, game;
+
+function initGame(speed) {
+  snake = [{ x: 9*box, y: 10*box }];
+  dx = box; dy = 0;
+  score = 0;
+  food = { x: Math.floor(Math.random()*20)*box, y: Math.floor(Math.random()*20)*box };
+  scoreEl.textContent = "Score: "+score;
+  clearInterval(game);
+  game = setInterval(draw, speed);
+}
+
+document.addEventListener("keydown", e=>{
+  if(e.key==="ArrowLeft" && dx===0){dx=-box; dy=0;}
+  else if(e.key==="ArrowUp" && dy===0){dx=0; dy=-box;}
+  else if(e.key==="ArrowRight" && dx===0){dx=box; dy=0;}
+  else if(e.key==="ArrowDown" && dy===0){dx=0; dy=box;}
+});
+
+function draw(){
+  ctx.fillStyle="#111";
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  for(let i=0;i<snake.length;i++){
+    ctx.fillStyle = i===0?"#00FF99":"#27ae60";
+    ctx.fillRect(snake[i].x,snake[i].y,box,box);
+  }
+
+  ctx.fillStyle="#FF0000";
+  ctx.fillRect(food.x,food.y,box,box);
+
+  let snakeX=snake[0].x+dx;
+  let snakeY=snake[0].y+dy;
+
+  if(snakeX===food.x && snakeY===food.y){
+    score++;
+    scoreEl.textContent="Score: "+score;
+    food={x:Math.floor(Math.random()*20)*box,y:Math.floor(Math.random()*20)*box};
+  } else {snake.pop();}
+
+  let newHead={x:snakeX, y:snakeY};
+
+  if(snakeX<0 || snakeY<0 || snakeX>=canvas.width || snakeY>=canvas.height || snakeCollision(newHead)){
+    clearInterval(game);
+    if(score>highScore){highScore=score; highScoreEl.textContent="High Score: "+highScore;}
+    alert("Game Over! Final Score: "+score);
+  }
+
+  snake.unshift(newHead);
+}
+
+function snakeCollision(head){
+  for(let i=1;i<snake.length;i++){
+    if(head.x===snake[i].x && head.y===snake[i].y) return true;
+  }
+  return false;
+}
+
+startBtn.addEventListener("click", ()=>{
+  let speed=parseInt(levelSelect.value);
+  initGame(speed);
+});
+</script>
+</body>
+</html>
